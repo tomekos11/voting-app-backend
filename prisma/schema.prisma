@@ -1,51 +1,40 @@
-generator client {
-  provider = "prisma-client-js"
-}
-
+// schema.prisma
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        Int     @id @default(autoincrement())
-  address   String  @unique
-  isChairman Boolean @default(false)
-  isAdmin   Boolean @default(false)
-  isVoter   Boolean @default(false)
-  votes     Vote[]
+generator client {
+  provider = "prisma-client-js"
 }
 
 model Voting {
-  id         Int      @id @default(autoincrement())
-  title      String
-  startTime  DateTime
-  endTime    DateTime
-  votingType VotingType
-  createdAt  DateTime @default(now())
-  candidates Candidate[]
-  votes      Vote[]
-  hash       String?   // opcjonalny hash z blockchaina
+  id            Int       @id @default(autoincrement())
+  title         String
+  startTime     DateTime
+  endTime       DateTime
+  votingType    VotingType
+  proposals     Proposal[]
+  votes         Vote[]
+  createdAt     DateTime  @default(now())
 }
 
-model Candidate {
-  id         Int      @id @default(autoincrement())
-  name       Bytes    // odpowiada `bytes32` w Solidity
-  metadataCID String
-  voting     Voting   @relation(fields: [votingId], references: [id])
-  votingId   Int
-  votes       Vote[]
+model Proposal {
+  id          Int      @id @default(autoincrement())
+  voting      Voting   @relation(fields: [votingId], references: [id])
+  votingId    Int
+  name        String   // pełna nazwa propozycji
+  metadataCID String   // CID do IPFS z dodatkowymi danymi
+  createdAt   DateTime @default(now())
 }
 
 model Vote {
-  id         Int     @id @default(autoincrement())
-  user       User    @relation(fields: [userId], references: [id])
-  userId     Int
-  voting     Voting  @relation(fields: [votingId], references: [id])
-  votingId   Int
-  candidate  Candidate @relation(fields: [candidateId], references: [id])
-  candidateId Int
-  createdAt  DateTime @default(now())
+  id          Int      @id @default(autoincrement())
+  voting      Voting   @relation(fields: [votingId], references: [id])
+  votingId    Int
+  voter       String   // adres Ethereum głosującego
+  proposalId  Int      // wskazanie propozycji
+  createdAt   DateTime @default(now())
 }
 
 enum VotingType {
