@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int     @id @default(autoincrement())
+  address   String  @unique
+  isChairman Boolean @default(false)
+  isAdmin   Boolean @default(false)
+  isVoter   Boolean @default(false)
+  votes     Vote[]
+}
+
+model Voting {
+  id         Int      @id @default(autoincrement())
+  title      String
+  startTime  DateTime
+  endTime    DateTime
+  votingType VotingType
+  createdAt  DateTime @default(now())
+  candidates Candidate[]
+  votes      Vote[]
+  hash       String?   // opcjonalny hash z blockchaina
+}
+
+model Candidate {
+  id         Int      @id @default(autoincrement())
+  name       Bytes    // odpowiada `bytes32` w Solidity
+  metadataCID String
+  voting     Voting   @relation(fields: [votingId], references: [id])
+  votingId   Int
+  votes       Vote[]
+}
+
+model Vote {
+  id         Int     @id @default(autoincrement())
+  user       User    @relation(fields: [userId], references: [id])
+  userId     Int
+  voting     Voting  @relation(fields: [votingId], references: [id])
+  votingId   Int
+  candidate  Candidate @relation(fields: [candidateId], references: [id])
+  candidateId Int
+  createdAt  DateTime @default(now())
+}
+
+enum VotingType {
+  Public
+  Private
+}
