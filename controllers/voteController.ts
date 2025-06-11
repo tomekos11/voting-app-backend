@@ -4,6 +4,8 @@ import { ethers, keccak256, toUtf8Bytes } from 'ethers';
 import VotingSystem from '../abi/VotingSystem.json';
 import { prisma } from '../prisma';
 import multer from 'multer';
+import fs from 'fs';
+import path from 'path';
 
 const upload = multer({
   dest: 'uploads/',
@@ -58,29 +60,24 @@ export const verifyTransaction = asyncHandler(async (req: Request, res: Response
   return;
 });
 
-import fs from 'fs';
-import path from 'path';
 
 const saveBase64Image = (base64String: string): string | null => {
   try {
     if (!base64String.startsWith('data:image/')) return null;
 
-    // Format: data:image/png;base64,AAAA...
     const matches = base64String.match(/^data:image\/(\w+);base64,(.+)$/);
     if (!matches) return null;
 
-    const ext = matches[1]; // np. png, jpeg
+    const ext = matches[1];
     const data = matches[2];
     const buffer = Buffer.from(data, 'base64');
 
-    // Unikalna nazwa pliku, np. timestamp + losowe
     const fileName = `img_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${ext}`;
     const filePath = path.join('uploads', fileName);
 
-    // Zapisz plik w folderze uploads
     fs.writeFileSync(filePath, buffer);
 
-    return filePath; // Zwracamy ścieżkę do pliku
+    return filePath;
   } catch (err) {
     console.error('Error saving image:', err);
     return null;
@@ -97,7 +94,7 @@ export const createVoting = async (req: Request, res: Response) => {
 
       return {
         name: p.name,
-        image: imagePath || '',  // jeśli null, to puste string
+        image: imagePath || '',
         metadataCID: p.hash,
         details: p.details,
       };
