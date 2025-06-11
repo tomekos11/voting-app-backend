@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import voteController from '../controllers/voteController';
+import { verifyTransaction } from '../controllers/voteController';
 
 const router = Router();
 
-router.post('/voting', voteController.verifyTransaction);
+router.post('/voting', verifyTransaction);
 
 export default router;

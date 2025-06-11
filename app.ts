@@ -1,11 +1,12 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
-import userRoutes from './routes/userRoutes';
 import voteRoutes from './routes/votingRoutes';
 import cors from 'cors';
+import dotenv from 'dotenv';
+
 
 const app = express();
-
+dotenv.config();
 app.use(
   cors({
     origin: ['http://localhost:3000'],
@@ -14,7 +15,6 @@ app.use(
 )
 app.use(express.json());
 app.use(cookieParser());
-//app.use('/api', userRoutes);
 
 app.use('/api', voteRoutes)
 

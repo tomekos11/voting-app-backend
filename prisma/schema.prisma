@@ -8,14 +8,15 @@ generator client {
   provider = "prisma-client-js"
 }
 
+
 model Voting {
   id            Int       @id @default(autoincrement())
   title         String
   startTime     DateTime
   endTime       DateTime
-  votingType    VotingType
+  votingType    Int       @db.SmallInt 
   proposals     Proposal[]
-  votes         Vote[]
+  metadataCID String   // CID do IPFS z dodatkowymi danymi
   createdAt     DateTime  @default(now())
 }
 
@@ -24,20 +25,7 @@ model Proposal {
   voting      Voting   @relation(fields: [votingId], references: [id])
   votingId    Int
   name        String   // pełna nazwa propozycji
+  image       String   // addr image dodac
   metadataCID String   // CID do IPFS z dodatkowymi danymi
   createdAt   DateTime @default(now())
-}
-
-model Vote {
-  id          Int      @id @default(autoincrement())
-  voting      Voting   @relation(fields: [votingId], references: [id])
-  votingId    Int
-  voter       String   // adres Ethereum głosującego
-  proposalId  Int      // wskazanie propozycji
-  createdAt   DateTime @default(now())
-}
-
-enum VotingType {
-  Public
-  Private
 }
