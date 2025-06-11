@@ -1,7 +1,7 @@
 import asyncHandler from 'express-async-handler';
 import { Request, Response } from 'express';
 import { ethers, keccak256, toUtf8Bytes } from 'ethers';
-import VotingSystem from '../abi/VotingSystem.json';
+import VotingSystem from '../artifacts/contracts/smart_contract.sol/VotingSystem.json'
 import { prisma } from '../prisma';
 import multer from 'multer';
 import fs from 'fs';
