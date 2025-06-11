@@ -122,3 +122,33 @@ export const createVoting = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
+
+export const getVotingByCID = async (req: Request, res: Response) => {
+  try {
+    const cid = req.query.cid as string;
+
+    if (!cid) {
+      res.status(400).json({ error: 'metadataCID (cid) is required as query parameter' });
+      return;
+    }
+
+    const voting = await prisma.voting.findFirst({
+      where: { metadataCID: cid },
+      include: {
+        proposals: true,
+      },
+    });
+
+    if (!voting) {
+      res.status(404).json({ error: 'Voting not found' });
+      return;
+    }
+
+    res.status(200).json({ voting });
+  } catch (err) {
+    console.error('Error fetching voting by CID:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+
