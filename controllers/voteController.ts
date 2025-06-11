@@ -2,8 +2,14 @@ import asyncHandler from 'express-async-handler';
 import { Request, Response } from 'express';
 import { ethers, keccak256, toUtf8Bytes } from 'ethers';
 import VotingSystem from '../abi/VotingSystem.json';
+import { prisma } from '../prisma';
+import multer from 'multer';
 
-// Funkcja initEthers zwracająca provider i contract
+const upload = multer({
+  dest: 'uploads/',
+  limits: { fileSize: 10 * 1024 * 1024 },
+});
+
 function initEthers() {
   const infuraApiKey = process.env.INFURA_API_KEY || "";
   if (!infuraApiKey) throw new Error('INFURA_API_KEY is not set');
@@ -34,7 +40,8 @@ export const verifyTransaction = asyncHandler(async (req: Request, res: Response
   try {
     receipt = await provider.getTransactionReceipt(txHash);
   } catch (err) {
-    return res.status(400).json({ error: 'Invalid txHash or error fetching transaction receipt' });
+    res.status(400).json({ error: 'Invalid txHash or error fetching transaction receipt' });
+    return;
   }
 
   if (!receipt || receipt.status !== 1) {
@@ -42,16 +49,79 @@ export const verifyTransaction = asyncHandler(async (req: Request, res: Response
     return;
   }
 
-  const votingCreatedTopic = keccak256(toUtf8Bytes('VotingCreated(uint256,address,string)'));
-  const votingEvent = receipt.logs.find(log => log.topics[0] === votingCreatedTopic);
-
-  if (!votingEvent) {
+  if (!receipt.status) {
     res.status(404).json({ error: 'VotingCreated event not found in transaction' });
     return;
   }
 
-  const parsed = contract.interface.parseLog(votingEvent);
-  const { votingId, creator, title } = parsed.args;
-
-  res.json({ success: true, votingId, creator, title });
+  res.json({ success: true });
+  return;
 });
+
+import fs from 'fs';
+import path from 'path';
+
+const saveBase64Image = (base64String: string): string | null => {
+  try {
+    if (!base64String.startsWith('data:image/')) return null;
+
+    // Format: data:image/png;base64,AAAA...
+    const matches = base64String.match(/^data:image\/(\w+);base64,(.+)$/);
+    if (!matches) return null;
+
+    const ext = matches[1]; // np. png, jpeg
+    const data = matches[2];
+    const buffer = Buffer.from(data, 'base64');
+
+    // Unikalna nazwa pliku, np. timestamp + losowe
+    const fileName = `img_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${ext}`;
+    const filePath = path.join('uploads', fileName);
+
+    // Zapisz plik w folderze uploads
+    fs.writeFileSync(filePath, buffer);
+
+    return filePath; // Zwracamy ścieżkę do pliku
+  } catch (err) {
+    console.error('Error saving image:', err);
+    return null;
+  }
+};
+
+
+export const createVoting = async (req: Request, res: Response) => {
+  try {
+    const { title, startTime, endTime, votingType, propositions, metaCID } = req.body;
+
+    const proposalsData = propositions.map((p: any) => {
+      const imagePath = p.img ? saveBase64Image(p.img) : null;
+
+      return {
+        name: p.name,
+        image: imagePath || '',  // jeśli null, to puste string
+        metadataCID: p.hash,
+        details: p.details,
+      };
+    });
+
+    const newVoting = await prisma.voting.create({
+      data: {
+        title,
+        startTime: new Date(startTime * 1000),
+        endTime: new Date(endTime * 1000),
+        votingType,
+        metadataCID: metaCID,
+        proposals: {
+          create: proposalsData,
+        },
+      },
+      include: {
+        proposals: true,
+      },
+    });
+
+    res.status(201).json({ voting: newVoting });
+  } catch (err) {
+    console.error('Error creating voting:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};

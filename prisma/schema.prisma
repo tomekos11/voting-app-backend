@@ -27,5 +27,6 @@ model Proposal {
   name        String   // pełna nazwa propozycji
   image       String   // addr image dodac
   metadataCID String   // CID do IPFS z dodatkowymi danymi
+  details     Json?
   createdAt   DateTime @default(now())
 }
