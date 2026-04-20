@@ -1,0 +1,11 @@
+cert
+cert/*
+
+node_modules
+node_modules/*
+/generated/prisma
+
+/prisma/migrations
+.env
+
+cache/*

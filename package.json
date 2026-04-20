@@ -1,0 +1,36 @@
+{
+  "name": "voting-app-backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "tsx --watch server.ts",
+    "start": "tsx server.ts",
+    "migrate": "prisma migrate dev --name init",
+    "deploy:ganache": "node scripts/deploy-ganache.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^6.9.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "ethers": "^6.14.3",
+    "express": "^5.1.0",
+    "express-async-handler": "^1.2.0",
+    "multer": "^2.0.1",
+    "pg": "^8.16.0",
+    "prisma": "^6.9.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.2",
+    "@types/node": "^22.15.30",
+    "hardhat": "^2.28.6",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  },
+  "description": ""
+}

@@ -1,0 +1,32 @@
+// schema.prisma
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+
+model Voting {
+  id            Int       @id @default(autoincrement())
+  title         String
+  startTime     DateTime
+  endTime       DateTime
+  votingType    Int       @db.SmallInt 
+  proposals     Proposal[]
+  metadataCID String   // CID do IPFS z dodatkowymi danymi
+  createdAt     DateTime  @default(now())
+}
+
+model Proposal {
+  id          Int      @id @default(autoincrement())
+  voting      Voting   @relation(fields: [votingId], references: [id])
+  votingId    Int
+  name        String   // pełna nazwa propozycji
+  image       String   // addr image dodac
+  metadataCID String   // CID do IPFS z dodatkowymi danymi
+  details     Json?
+  createdAt   DateTime @default(now())
+}
